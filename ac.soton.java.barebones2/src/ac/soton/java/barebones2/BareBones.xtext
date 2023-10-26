@@ -1,0 +1,100 @@
+grammar ac.soton.java.barebones2.BareBones with org.eclipse.xtext.common.Terminals
+
+generate bareBones "http://www.soton.ac/java/barebones2/BareBones"
+
+Program:
+	statements += Statement+;
+	
+Statement:
+	Clear | Increment | Decrement | While | OutVariable | OutString | In
+;
+
+Clear:
+	{Clear}
+	'clear' name=ID
+;
+
+Increment:
+	{Increment}
+	'incr' name=ID
+;
+
+Decrement:
+	{Decrement}
+	'decr' name=ID
+;
+
+While:
+	{While}
+	'while' condition=Formula 'do'
+		statements += Statement+
+	'end'
+;
+
+OutVariable:
+	{OutVariable}
+	'out' formula=Formula
+;
+
+OutString:
+	{OutString}
+	'out' name=STRING
+;
+
+In:
+	{In}
+	'in' name=ID
+;
+
+
+
+/*
+ * Defining Formula
+ */
+
+Formula:
+	Predicate
+;
+
+Predicate returns Formula:
+	AssociativePredicate
+;
+
+AssociativePredicate returns Formula: 
+	PrimaryPredicate ({AssociativePredicate.left=current} tag=('&&' | '||') right=PrimaryPredicate)* 
+;
+
+PrimaryPredicate returns Formula: 
+	RelationalPredicate
+;
+
+RelationalPredicate returns Formula:
+	Expression ({RelationalPredicate.left = current} tag=('=') right=Expression)?
+;
+
+Expression returns Formula:
+	AdditionSubtraction
+;
+
+AdditionSubtraction returns Formula:
+	(MultiplicationDivision) ({AdditionSubtraction.left=current} tag=('+' | '-') right=(MultiplicationDivision))*
+;
+
+MultiplicationDivision returns Formula:
+	PrimaryExpression ({MultiplicationDivision.left=current} tag=('*' | '/') right=PrimaryExpression)*
+;
+
+PrimaryExpression returns Formula:
+	'(' Formula ')' |
+	NumberLiteral |
+	Identifier
+;
+
+
+NumberLiteral:
+	value=INT
+;
+
+Identifier:
+	name=ID
+;
